@@ -51,7 +51,9 @@ class FilePickerAdapter extends RecyclerView.Adapter {
 
         itemViewHolder.ivSelectState.setSelected(mCurrentPickerFileList.contains(file));
 
-        mImageLoader.loadPreviewImage(file, itemViewHolder.ivThumbnail);
+        if (mImageLoader != null) {
+            mImageLoader.loadPreviewImage(file, itemViewHolder.ivThumbnail);
+        }
     }
 
     @Override
