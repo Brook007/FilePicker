@@ -1,7 +1,7 @@
 # FilePicker
 Android文件选择器
 
-[![](https://jitpack.io/v/Brook007/FilePicker.svg)](https://jitpack.io/#Brook007/FilePicker)
+[![Jitpack](https://jitpack.io/v/Brook007/FilePicker.svg)](https://jitpack.io/#Brook007/FilePicker)
 
 ## 引入依赖
 
