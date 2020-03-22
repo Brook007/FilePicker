@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
         defaultConfig.setImageLoader(new IPreviewImageLoader() {
             @Override
             public void loadPreviewImage(File sourceFile, ImageView previewImageView) {
+                // 如果需要加载其他的类型的图片，预览图策略需要更改，以便显示预览图或者图标
                 Glide.with(previewImageView.getContext())
                         .load(sourceFile)
                         .apply(new RequestOptions().centerCrop())
