@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.brook.app.android.filepicker">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application>
+        <activity
+            android:name="com.brook.app.android.filepicker.ui.FilePickerActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+    </application>
+</manifest>
