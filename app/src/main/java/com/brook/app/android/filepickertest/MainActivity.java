@@ -27,7 +27,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        FilePickerConfig.DEFAULT_CONFIG.setImageLoader(new IPreviewImageLoader() {
+        FilePickerConfig defaultConfig = FilePickerConfig.DEFAULT_CONFIG;
+        defaultConfig.setImageLoader(new IPreviewImageLoader() {
             @Override
             public void loadPreviewImage(File sourceFile, ImageView previewImageView) {
                 Glide.with(previewImageView.getContext())
@@ -36,15 +37,7 @@ public class MainActivity extends AppCompatActivity {
                         .into(previewImageView);
             }
         });
-
-        try {
-            Log.d("TAG", "Hash1:" + FilePickerConfig.DEFAULT_CONFIG.hashCode());
-            FilePickerConfig filePickerConfig = FilePickerConfig.DEFAULT_CONFIG.clone();
-            Log.d("TAG", "Hash2:" + filePickerConfig.hashCode());
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-
+        defaultConfig.setPickerCount(20);
     }
 
     public void startPicker(View view) {
@@ -54,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onGranted() {
                         FilePickerUtils.getInstance()
-                                .setPickerCount(9)
+                                .setPickerCount(1)
                                 .launchPicker(MainActivity.this, new FilePickerValueCallback() {
                                     @Override
                                     public void onPickResult(List<File> file) {

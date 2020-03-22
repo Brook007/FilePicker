@@ -67,10 +67,9 @@ public class FilePickerUtils {
     }
 
     public void launchPicker(@NonNull Context context, @NonNull FilePickerValueCallback callback) {
-        if (mConfig != null) {
-            mConfig.setContext(context);
-            mConfig.setCallback(callback);
-            mConfig.startLaunchPickerUI();
-        }
+        checkConfig();
+        this.mConfig.setContext(context);
+        this.mConfig.setCallback(callback);
+        this.mConfig.startLaunchPickerUI();
     }
 }
