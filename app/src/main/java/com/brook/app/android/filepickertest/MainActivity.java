@@ -46,14 +46,18 @@ public class MainActivity extends AppCompatActivity {
                 .request(new PermissionUtil.PermissionCallback() {
                     @Override
                     public void onGranted() {
-                        FilePickerUtils.getInstance()
-                                .setPickerCount(1)
-                                .launchPicker(MainActivity.this, new FilePickerValueCallback() {
-                                    @Override
-                                    public void onPickResult(List<File> file) {
-                                        Log.d("Brook", "回调" + Arrays.toString(file.toArray()));
-                                    }
-                                });
+                        try {
+                            FilePickerUtils.getInstance()
+                                    .setPickerCount(3)
+                                    .launchPicker(MainActivity.this, new FilePickerValueCallback() {
+                                        @Override
+                                        public void onPickResult(List<File> file) {
+                                            Log.d("TAG", "回调" + Arrays.toString(file.toArray()));
+                                        }
+                                    });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     @Override
