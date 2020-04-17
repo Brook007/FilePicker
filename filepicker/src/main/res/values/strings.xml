@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">filepicker</string>
+    <string name="camera">拍摄照片</string>
 </resources>

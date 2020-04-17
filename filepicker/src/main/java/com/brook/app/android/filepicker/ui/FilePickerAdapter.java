@@ -32,40 +32,61 @@ class FilePickerAdapter extends RecyclerView.Adapter {
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.filepicker_item_thumbnail, viewGroup, false);
-        int itemWidth = (int) ((DisplayUtil.getScreenWidth(viewGroup.getContext()) - DisplayUtil.dp2px(viewGroup.getContext(), 1) * 2) / 3);
-        view.setLayoutParams(new ViewGroup.LayoutParams(itemWidth, itemWidth));
-        view.setBackgroundColor(Color.rgb(50, 50, 50));
-        return new ItemViewHolder(view);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
+        if (viewType == 0) {
+            View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.filepicker_item_camera, viewGroup, false);
+            int itemWidth = (int) ((DisplayUtil.getScreenWidth(viewGroup.getContext()) - DisplayUtil.dp2px(viewGroup.getContext(), 1) * 2) / 3);
+            view.setLayoutParams(new ViewGroup.LayoutParams(itemWidth, itemWidth));
+            return new CameraItemHolder(view);
+        } else {
+            View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.filepicker_item_thumbnail, viewGroup, false);
+            int itemWidth = (int) ((DisplayUtil.getScreenWidth(viewGroup.getContext()) - DisplayUtil.dp2px(viewGroup.getContext(), 1) * 2) / 3);
+            view.setLayoutParams(new ViewGroup.LayoutParams(itemWidth, itemWidth));
+            view.setBackgroundColor(Color.rgb(50, 50, 50));
+            return new ItemViewHolder(view);
+        }
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int p) {
-        ItemViewHolder itemViewHolder = (ItemViewHolder) viewHolder;
         int position = viewHolder.getAdapterPosition();
-        File file = mFileList.get(position);
-        itemViewHolder.targetFile = file;
-        itemViewHolder.clickListener = mOnItemClickListener;
-        itemViewHolder.itemPosition = position;
+        int viewType = getItemViewType(position);
+        if (viewType == 0) {
+            CameraItemHolder cameraItemHolder = (CameraItemHolder) viewHolder;
+            cameraItemHolder.clickListener = mOnItemClickListener;
+            cameraItemHolder.itemView.setOnClickListener(cameraItemHolder);
+        } else {
+            ItemViewHolder itemViewHolder = (ItemViewHolder) viewHolder;
+            File file = mFileList.get(position - 1);
+            itemViewHolder.targetFile = file;
+            itemViewHolder.clickListener = mOnItemClickListener;
 
-        itemViewHolder.ivSelectState.setSelected(mCurrentPickerFileList.contains(file));
+            itemViewHolder.ivSelectState.setSelected(mCurrentPickerFileList.contains(file));
 
-        if (mImageLoader != null) {
-            mImageLoader.loadPreviewImage(file, itemViewHolder.ivThumbnail);
+            if (mImageLoader != null) {
+                mImageLoader.loadPreviewImage(file, itemViewHolder.ivThumbnail);
+            }
         }
     }
 
     @Override
     public int getItemCount() {
-        return mFileList.size();
+        return mFileList.size() + 1;
     }
 
-    private class ItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    @Override
+    public int getItemViewType(int position) {
+        if (position == 0) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    private static class ItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public final ImageView ivThumbnail;
         public final ImageView ivSelectState;
-        public int itemPosition;
         public File targetFile;
         public OnItemClickListener clickListener;
 
@@ -79,7 +100,24 @@ class FilePickerAdapter extends RecyclerView.Adapter {
         @Override
         public void onClick(View v) {
             if (clickListener != null) {
-                clickListener.onItemClick(v, targetFile, itemPosition);
+                clickListener.onItemClick(v, targetFile, getAdapterPosition());
+            }
+        }
+    }
+
+    private static class CameraItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+        public OnItemClickListener clickListener;
+
+        public CameraItemHolder(@NonNull View itemView) {
+            super(itemView);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (clickListener != null) {
+                clickListener.onItemClick(v, null, getAdapterPosition());
             }
         }
     }

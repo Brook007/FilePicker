@@ -1,11 +1,19 @@
 package com.brook.app.android.filepicker.ui;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.brook.app.android.activityresult.ActivityResultUtil;
 import com.brook.app.android.filepicker.R;
 import com.brook.app.android.filepicker.core.FilePickerConfig;
 import com.brook.app.android.filepicker.core.FilePickerValueCallback;
@@ -129,34 +138,80 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onItemClick(@NonNull View itemView, @NonNull File targetFile, int position) {
-        if (mCurrentPickerFileList.contains(targetFile)) {
-            mCurrentPickerFileList.remove(targetFile);
-            itemView.setSelected(false);
-        } else {
-            if (mPickerCount > mCurrentPickerFileList.size()) {
-                mCurrentPickerFileList.add(targetFile);
-                itemView.setSelected(true);
+        if (position == 0) {
+            Context context = this.getContext();
+            if (context == null) {
+                context = getActivity();
             }
-        }
+            if (context != null) {
+                File externalCacheDir = context.getExternalCacheDir();
+                if (externalCacheDir != null) {
 
-        if (mCurrentPickerFileList.isEmpty()) {
-            tvFinish.setText("发送");
+                    String extraCache = externalCacheDir.getAbsolutePath();
+                    final File cameraSavePath = new File(extraCache + "/" + System.currentTimeMillis() + ".jpg");
+
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    Uri uri = null;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        uri = FileProvider.getUriForFile(this.getContext(), this.getContext().getApplicationInfo().packageName + ".cacheprovider", cameraSavePath);
+                        List<ResolveInfo> resInfoList = getContext().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                        if (resInfoList != null) {
+                            for (ResolveInfo resolveInfo : resInfoList) {
+                                String packageName = resolveInfo.activityInfo.packageName;
+                                context.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            }
+                        }
+                    } else {
+                        uri = Uri.fromFile(cameraSavePath);
+                    }
+
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+
+                    ActivityResultUtil.with(this)
+                            .startActivityForResult(intent, new ActivityResultUtil.Callback() {
+
+                                @Override
+                                public void onActivityResult(int requestCode, int resultCode, Intent data) {
+                                    if (cameraSavePath.exists()) {
+                                        mCurrentPickerFileList.add(cameraSavePath);
+                                        mConfigCallback.onPickResult(mCurrentPickerFileList);
+                                        finishParentActivity();
+                                    }
+                                }
+                            });
+                }
+            }
         } else {
-            tvFinish.setText(String.format(Locale.getDefault(), "发送(%d/%d)", mCurrentPickerFileList.size(), mPickerCount));
-        }
-
-        if (mPickerCount == mCurrentPickerFileList.size()) {
-            if (mPickerCount == 1) {
-                mConfigCallback.onPickResult(mCurrentPickerFileList);
-                finishParentActivity();
+            if (mCurrentPickerFileList.contains(targetFile)) {
+                mCurrentPickerFileList.remove(targetFile);
+                itemView.setSelected(false);
             } else {
-                tvFinish.setEnabled(true);
+                if (mPickerCount > mCurrentPickerFileList.size()) {
+                    mCurrentPickerFileList.add(targetFile);
+                    itemView.setSelected(true);
+                }
             }
-        } else {
+
             if (mCurrentPickerFileList.isEmpty()) {
-                tvFinish.setEnabled(false);
+                tvFinish.setText("发送");
             } else {
-                tvFinish.setEnabled(true);
+                tvFinish.setText(String.format(Locale.getDefault(), "发送(%d/%d)", mCurrentPickerFileList.size(), mPickerCount));
+            }
+
+            if (mPickerCount == mCurrentPickerFileList.size()) {
+                if (mPickerCount == 1) {
+                    mConfigCallback.onPickResult(mCurrentPickerFileList);
+                    finishParentActivity();
+                } else {
+                    tvFinish.setEnabled(true);
+                }
+            } else {
+                if (mCurrentPickerFileList.isEmpty()) {
+                    tvFinish.setEnabled(false);
+                } else {
+                    tvFinish.setEnabled(true);
+                }
             }
         }
     }

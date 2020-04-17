@@ -7,5 +7,15 @@
         <activity
             android:name="com.brook.app.android.filepicker.ui.FilePickerActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
+
+        <provider
+            android:name="com.brook.app.android.filepicker.util.CacheProvider"
+            android:authorities="${applicationId}.cacheprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>
