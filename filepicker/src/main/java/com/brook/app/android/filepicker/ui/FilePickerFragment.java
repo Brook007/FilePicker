@@ -1,5 +1,6 @@
 package com.brook.app.android.filepicker.ui;
 
+import android.Manifest;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.OnLifecycleEvent;
@@ -34,6 +35,7 @@ import com.brook.app.android.filepicker.core.IFileProvider;
 import com.brook.app.android.filepicker.core.IPreviewImageLoader;
 import com.brook.app.android.filepicker.util.ConfigPool;
 import com.brook.app.android.filepicker.util.DisplayUtil;
+import com.brook.app.android.permissionutil.PermissionUtil;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -164,53 +166,64 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
         }
     }
 
-
     @Override
     public void onItemClick(@NonNull View itemView, @NonNull File targetFile, int position) {
         if (position == 0) {
-            Context context = this.getContext();
-            if (context == null) {
-                context = getActivity();
-            }
-            if (context != null) {
-                File externalCacheDir = context.getExternalCacheDir();
-                if (externalCacheDir != null) {
+            PermissionUtil.with(this)
+                    .permission(Manifest.permission.CAMERA)
+                    .request(new PermissionUtil.PermissionCallback() {
+                        @Override
+                        public void onGranted() {
+                            Context context = getContext();
+                            if (context == null) {
+                                context = getActivity();
+                            }
+                            if (context != null) {
+                                File externalCacheDir = context.getExternalCacheDir();
+                                if (externalCacheDir != null) {
 
-                    String extraCache = externalCacheDir.getAbsolutePath();
-                    final File cameraSavePath = new File(extraCache + "/" + System.currentTimeMillis() + ".jpg");
+                                    String extraCache = externalCacheDir.getAbsolutePath();
+                                    final File cameraSavePath = new File(extraCache + "/" + System.currentTimeMillis() + ".jpg");
 
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    Uri uri = null;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        uri = FileProvider.getUriForFile(this.getContext(), this.getContext().getApplicationInfo().packageName + ".cacheprovider", cameraSavePath);
-                        List<ResolveInfo> resInfoList = getContext().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-                        if (resInfoList != null) {
-                            for (ResolveInfo resolveInfo : resInfoList) {
-                                String packageName = resolveInfo.activityInfo.packageName;
-                                context.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                    Uri uri = null;
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                        uri = FileProvider.getUriForFile(context, context.getApplicationInfo().packageName + ".cacheprovider", cameraSavePath);
+                                        List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                                        if (resInfoList != null) {
+                                            for (ResolveInfo resolveInfo : resInfoList) {
+                                                String packageName = resolveInfo.activityInfo.packageName;
+                                                context.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                            }
+                                        }
+                                    } else {
+                                        uri = Uri.fromFile(cameraSavePath);
+                                    }
+
+                                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+
+                                    ActivityResultUtil.with(FilePickerFragment.this)
+                                            .startActivityForResult(intent, new ActivityResultUtil.Callback() {
+
+                                                @Override
+                                                public void onActivityResult(int requestCode, int resultCode, Intent data) {
+                                                    if (cameraSavePath.exists()) {
+                                                        mCurrentPickerFileList.add(cameraSavePath);
+                                                        mConfigCallback.onPickResult(mCurrentPickerFileList);
+                                                        finishParentActivity();
+                                                    }
+                                                }
+                                            });
+                                }
                             }
                         }
-                    } else {
-                        uri = Uri.fromFile(cameraSavePath);
-                    }
 
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                        @Override
+                        public void onDenied(List<String> list) {
 
-                    ActivityResultUtil.with(this)
-                            .startActivityForResult(intent, new ActivityResultUtil.Callback() {
-
-                                @Override
-                                public void onActivityResult(int requestCode, int resultCode, Intent data) {
-                                    if (cameraSavePath.exists()) {
-                                        mCurrentPickerFileList.add(cameraSavePath);
-                                        mConfigCallback.onPickResult(mCurrentPickerFileList);
-                                        finishParentActivity();
-                                    }
-                                }
-                            });
-                }
-            }
+                        }
+                    });
         } else {
             if (mCurrentPickerFileList.contains(targetFile)) {
                 mCurrentPickerFileList.remove(targetFile);
