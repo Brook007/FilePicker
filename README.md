@@ -20,7 +20,7 @@ allprojects {
 
 ```gradle
 dependencies {
-	implementation 'com.github.Brook007:FilePicker:1.0.3'
+	implementation 'com.github.Brook007:FilePicker:1.0.4'
 }
 ```
 
