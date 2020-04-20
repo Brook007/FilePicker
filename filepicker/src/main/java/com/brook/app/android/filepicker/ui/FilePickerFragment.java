@@ -1,5 +1,8 @@
 package com.brook.app.android.filepicker.ui;
 
+import android.arch.lifecycle.Lifecycle;
+import android.arch.lifecycle.LifecycleObserver;
+import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,6 +19,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.FileProvider;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,6 +69,26 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.filepicker_fragment_simple, container, false);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            activity.getLifecycle().addObserver(new LifecycleObserver() {
+                @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+                public void onDestroy() {
+                    beforeDestroyCallback();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        beforeDestroyCallback();
     }
 
     @Override
@@ -127,11 +151,16 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onClick(View v) {
-        if (R.id.back == v.getId()) {
+        if (R.id.back == v.getId() || R.id.finish == v.getId()) {
+            beforeDestroyCallback();
             finishParentActivity();
-        } else if (R.id.finish == v.getId()) {
+        }
+    }
+
+    private void beforeDestroyCallback() {
+        if (mConfigCallback != null) {
             mConfigCallback.onPickResult(mCurrentPickerFileList);
-            finishParentActivity();
+            mConfigCallback = null;
         }
     }
 
