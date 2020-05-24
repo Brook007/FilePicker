@@ -2,6 +2,7 @@ package com.brook.app.android.filepicker;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.brook.app.android.filepicker.core.FilePickerConfig;
 import com.brook.app.android.filepicker.core.FilePickerValueCallback;
@@ -13,7 +14,10 @@ import com.brook.app.android.filepicker.core.IFileProvider;
  */
 public class FilePickerUtils {
 
+    public static final String TAG = "FilePicker";
+
     public static FilePickerUtils INSTANCE;
+    private FilePickerConfig mConfig = null;
 
     private FilePickerUtils() {
 
@@ -30,11 +34,9 @@ public class FilePickerUtils {
         return INSTANCE;
     }
 
-    private FilePickerConfig mConfig = null;
-
-    public FilePickerUtils setFileProvider(IFileProvider provider) {
+    public FilePickerUtils addFileProvider(IFileProvider provider) {
         checkConfig();
-        this.mConfig.setFileProvider(provider);
+        this.mConfig.addFileProvider(provider);
         return this;
     }
 
@@ -47,7 +49,7 @@ public class FilePickerUtils {
     private void checkConfig() {
         if (mConfig == null) {
             try {
-                mConfig = FilePickerConfig.DEFAULT_CONFIG.clone();
+                mConfig = FilePickerConfig.getDefaultConfig().clone();
             } catch (CloneNotSupportedException e) {
                 mConfig = FilePickerConfig.createDefaultConfig();
                 e.printStackTrace();
@@ -55,9 +57,9 @@ public class FilePickerUtils {
         }
     }
 
-    public FilePickerUtils setFilePickerType(FilePickerConfig.Type type) {
+    public FilePickerUtils setFilePickerType(String type) {
         checkConfig();
-        this.mConfig.setPickerType(type);
+        this.mConfig.setPickerMimeType(type);
         return this;
     }
 
@@ -68,6 +70,10 @@ public class FilePickerUtils {
 
     public void launchPicker(@NonNull Context context, @NonNull FilePickerValueCallback callback) {
         checkConfig();
+        if (this.mConfig.getProvider(this.mConfig.getPickerMimeType()) == null) {
+            Log.e(TAG, "file provider not found");
+            return;
+        }
         this.mConfig.setContext(context);
         this.mConfig.setCallback(callback);
         this.mConfig.startLaunchPickerUI();

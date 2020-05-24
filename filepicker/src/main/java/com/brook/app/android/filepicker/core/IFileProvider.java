@@ -10,6 +10,8 @@ public interface IFileProvider {
 
     void injectConfig(FilePickerConfig config);
 
+    boolean handleMimeType(String mimeType);
+
     /**
      * 是否处理这个文件
      *
@@ -24,6 +26,13 @@ public interface IFileProvider {
      * @return
      */
     void getAllFile(FilePickerValueCallback callback);
+
+    /**
+     * 获取全部文件夹
+     *
+     * @param callback
+     */
+    void getAllFolder(FilePickerValueCallback callback);
 
     /**
      * 获取文件夹下的全部文件

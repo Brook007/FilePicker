@@ -14,12 +14,12 @@ import android.view.View;
 
 class GridDividerItemDecoration extends RecyclerView.ItemDecoration {
 
+    int spanCount = 0;
     private Paint mPaint;
     private int mDividerWidth;          //您所需指定的间隔宽度，主要为第一列和最后一列与父控件的间隔；行间距，列间距将动态分配
     private int mFirstRowTopMargin = 0; //第一行顶部是否需要间隔
     private boolean isNeedSpace = false;//第一列和最后一列是否需要指定间隔(默认不指定)
     private boolean isLastRowNeedSpace = false;//最后一行是否需要间隔(默认不需要)
-    int spanCount = 0;
     private Context mContext;
 
     /**

@@ -12,6 +12,12 @@ import java.util.Map;
 public class ConfigPool {
 
     private static ConfigPool INSTANCE;
+    private Map<Long, FilePickerConfig> pool;
+    private long currentKey = Long.MAX_VALUE;
+
+    private ConfigPool() {
+        pool = new HashMap<>();
+    }
 
     public static ConfigPool getInstance() {
         if (INSTANCE == null) {
@@ -23,13 +29,6 @@ public class ConfigPool {
         }
         return INSTANCE;
     }
-
-    private ConfigPool() {
-        pool = new HashMap<>();
-    }
-
-    private Map<Long, FilePickerConfig> pool;
-    private long currentKey = Long.MAX_VALUE;
 
     public long putConfig(FilePickerConfig config) {
         long uniqueKey = generateUniqueKey();

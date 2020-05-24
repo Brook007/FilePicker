@@ -25,9 +25,16 @@
             android:textSize="14sp" />
 
         <TextView
+            android:id="@+id/image_folder"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_centerInParent="true"
+            android:clickable="true"
+            android:drawableRight="@drawable/picker_selector_folder_state"
+            android:drawablePadding="4dp"
+            android:focusable="true"
+            android:focusableInTouchMode="false"
+            android:gravity="center"
             android:includeFontPadding="false"
             android:text="全部图片"
             android:textColor="#ffffff"

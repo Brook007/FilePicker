@@ -83,6 +83,10 @@ class FilePickerAdapter extends RecyclerView.Adapter {
         }
     }
 
+    public void setFileList(List<File> files) {
+        this.mFileList = files;
+    }
+
     private static class ItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public final ImageView ivThumbnail;

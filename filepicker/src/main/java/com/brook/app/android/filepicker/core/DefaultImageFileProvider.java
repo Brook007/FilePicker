@@ -3,20 +3,21 @@ package com.brook.app.android.filepicker.core;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.provider.MediaStore;
+import android.support.v4.content.MimeTypeFilter;
+import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Brook
  * @time 2020-03-14 13:59
  */
 public class DefaultImageFileProvider implements IFileProvider {
-
-    private List<String> supportSuffix = Arrays.asList("jpg", "jpeg", "png");
 
     private FilePickerConfig config;
 
@@ -26,10 +27,16 @@ public class DefaultImageFileProvider implements IFileProvider {
     }
 
     @Override
+    public boolean handleMimeType(String mimeType) {
+        String[] mimeTypeArray = mimeType.split("/");
+        return "image".equalsIgnoreCase(mimeTypeArray[0]);
+    }
+
+    @Override
     public boolean handlerFile(File file) {
         String fileName = file.getName().toLowerCase();
         String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
-        return supportSuffix.contains(suffix);
+        return MimeTypeFilter.matches(config.getPickerMimeType(), MimeTypeMap.getSingleton().getMimeTypeFromExtension(suffix));
     }
 
     @Override
@@ -41,6 +48,27 @@ public class DefaultImageFileProvider implements IFileProvider {
         //        File storageDirectory = Environment.getExternalStorageDirectory();
         //        getOrderGroupFile(storageDirectory, callback);
     }
+
+    @Override
+    public void getAllFolder(final FilePickerValueCallback callback) {
+        //        List<File> allPhoto = getAllPhoto();
+        //        Set<File> parentDirFile = new LinkedHashSet<File>();
+        //        for (File file : allPhoto) {
+        //            parentDirFile.add(file.getParentFile());
+        //        }
+        //        callback.onPickResult(new ArrayList<>(parentDirFile));
+        getAllFile(new FilePickerValueCallback() {
+            @Override
+            public void onPickResult(List<File> files) {
+                Set<File> parentDirFile = new LinkedHashSet<File>();
+                for (File file : files) {
+                    parentDirFile.add(file.getParentFile());
+                }
+                callback.onPickResult(new ArrayList<>(parentDirFile));
+            }
+        });
+    }
+
 
     @Override
     public void getOrderGroupFile(final File parentFile, final FilePickerValueCallback callback) {
@@ -55,6 +83,12 @@ public class DefaultImageFileProvider implements IFileProvider {
     }
 
     private void getOrderGroupFile(File parentFile, List<File> resultList) {
+        File noMediaFile = new File(parentFile, ".nomedia");
+        if (noMediaFile.exists()) {
+            // 不扫描nomedia文件夹
+            return;
+        }
+
         File[] files = parentFile.listFiles();
         if (files != null) {
             for (File file : files) {

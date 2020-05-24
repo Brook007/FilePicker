@@ -8,5 +8,5 @@ import java.util.List;
  * @time 2020-03-14 11:13
  */
 public interface FilePickerValueCallback {
-    void onPickResult(List<File> file);
+    void onPickResult(List<File> files);
 }

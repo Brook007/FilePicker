@@ -20,7 +20,7 @@ allprojects {
 
 ```gradle
 dependencies {
-	implementation 'com.github.Brook007:FilePicker:1.0.5'
+	implementation 'com.github.Brook007:FilePicker:1.1.0'
 }
 ```
 
@@ -30,7 +30,7 @@ dependencies {
 
 通过下面的代码配置一个默认的配置
 ```java
-FilePickerConfig defaultConfig = FilePickerConfig.DEFAULT_CONFIG;
+FilePickerConfig defaultConfig = FilePickerConfig.getDefaultConfig();
 defaultConfig.setImageLoader(new IPreviewImageLoader() {
     @Override
     public void loadPreviewImage(File sourceFile, ImageView previewImageView) {
@@ -49,7 +49,8 @@ defaultConfig.setPickerCount(9);
 ```java
 FilePickerUtils.getInstance()
         .setPickerCount(1)
-        .setFilePickerType(FilePickerConfig.Type.ALL)
+        // 默认MimeType为image/*
+        .setFilePickerType("image/*")
         .launchPicker(MainActivity.this, new FilePickerValueCallback() {
             @Override
             public void onPickResult(List<File> file) {

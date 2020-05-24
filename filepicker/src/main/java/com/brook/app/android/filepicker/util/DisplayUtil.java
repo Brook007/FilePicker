@@ -3,6 +3,7 @@ package com.brook.app.android.filepicker.util;
 import android.content.Context;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.View;
 import android.view.WindowManager;
 
 /**
@@ -28,6 +29,31 @@ public class DisplayUtil {
 
 
     /**
+     * 获取View在屏幕中X轴位置
+     *
+     * @param view
+     * @return
+     */
+    public static int getScreenX(View view) {
+        int[] xy = new int[2];
+        view.getLocationOnScreen(xy);
+        return xy[0];
+    }
+
+
+    /**
+     * 获取View在屏幕中Y轴位置
+     *
+     * @param view
+     * @return
+     */
+    public static int getScreenY(View view) {
+        int[] xy = new int[2];
+        view.getLocationOnScreen(xy);
+        return xy[1];
+    }
+
+    /**
      * 获得屏幕高度
      *
      * @return
@@ -35,7 +61,15 @@ public class DisplayUtil {
     public static int getScreenWidth(Context context) {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         DisplayMetrics outMetrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(outMetrics);
+        wm.getDefaultDisplay().getRealMetrics(outMetrics);
         return outMetrics.widthPixels;
+    }
+
+
+    public static int getScreenHeight(Context context) {
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        wm.getDefaultDisplay().getRealMetrics(outMetrics);
+        return outMetrics.heightPixels;
     }
 }

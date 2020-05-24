@@ -19,11 +19,15 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.FileProvider;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.util.Pair;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -38,6 +42,9 @@ import com.brook.app.android.filepicker.util.DisplayUtil;
 import com.brook.app.android.permissionutil.PermissionUtil;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -58,6 +65,10 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
     private FilePickerValueCallback mConfigCallback;
 
     private List<File> mCurrentPickerFileList = new LinkedList<>();
+    private TextView mImageFolder;
+    private IPreviewImageLoader mImageLoader;
+    private IFileProvider mImageProvider;
+    private FilePickerAdapter filePickerAdapter;
 
     public static FilePickerFragment newInstance(long configToken) {
         FilePickerFragment pickerFragment = new FilePickerFragment();
@@ -96,21 +107,24 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mImageFolder = view.findViewById(R.id.image_folder);
         mRecyclerView = view.findViewById(R.id.content_list);
+
         final ProgressBar loadingView = view.findViewById(R.id.loading);
         final View tvBack = view.findViewById(R.id.back);
         tvFinish = view.findViewById(R.id.finish);
+
         tvBack.setOnClickListener(this);
+        mImageFolder.setOnClickListener(this);
 
         loadingView.setVisibility(View.VISIBLE);
         mRecyclerView.setVisibility(View.GONE);
 
         Bundle arguments = getArguments();
-        IFileProvider provider;
         if (arguments != null) {
             FilePickerConfig config = ConfigPool.getInstance().getConfig(arguments.getLong(CONFIG_TOKEN));
-            provider = config.getProvider();
-            final IPreviewImageLoader imageLoader = config.getImageLoader();
+            mImageProvider = config.getProvider(config.getPickerMimeType());
+            mImageLoader = config.getImageLoader();
             mConfigCallback = config.getCallback();
             mPickerCount = config.getPickerCount();
 
@@ -124,7 +138,12 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
                 tvFinish.setVisibility(View.GONE);
             }
 
-            provider.getAllFile(new FilePickerValueCallback() {
+            if (mImageProvider == null) {
+                // TODO 没有Provider来处理这个操作
+                return;
+            }
+
+            mImageProvider.getAllFile(new FilePickerValueCallback() {
                 @Override
                 public void onPickResult(final List<File> fileList) {
                     getActivity().runOnUiThread(new Runnable() {
@@ -143,7 +162,8 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
                                             Color.parseColor("#2A2A2A"))
                             );
                             mRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3, GridLayoutManager.VERTICAL, false));
-                            mRecyclerView.setAdapter(new FilePickerAdapter(fileList, mCurrentPickerFileList, imageLoader, FilePickerFragment.this));
+                            filePickerAdapter = new FilePickerAdapter(fileList, mCurrentPickerFileList, mImageLoader, FilePickerFragment.this);
+                            mRecyclerView.setAdapter(filePickerAdapter);
                         }
                     });
                 }
@@ -152,11 +172,83 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
     }
 
     @Override
-    public void onClick(View v) {
+    public void onClick(final View v) {
         if (R.id.back == v.getId() || R.id.finish == v.getId()) {
             beforeDestroyCallback();
             finishParentActivity();
+        } else if (v.getId() == R.id.image_folder) {
+            // 显示PopupWindow
+
+            mImageProvider.getAllFolder(new FilePickerValueCallback() {
+                @Override
+                public void onPickResult(final List<File> file) {
+                    v.setSelected(true);
+
+                    View popupView = LayoutInflater.from(getNonNullContext()).inflate(R.layout.filepicker_layout_image_folder_popupwindow, null, false);
+
+                    RecyclerView folderList = popupView.findViewById(R.id.folder_list);
+                    int popupHeight = DisplayUtil.getScreenHeight(getNonNullContext()) - DisplayUtil.getScreenY(v) - v.getHeight();
+
+                    final PopupWindow popupWindow = new PopupWindow(
+                            popupView,
+                            DisplayUtil.getScreenWidth(getNonNullContext()),
+                            popupHeight
+                    );
+                    popupWindow.setOutsideTouchable(true);
+                    popupWindow.setFocusable(true);
+
+
+                    folderList.setLayoutManager(new LinearLayoutManager(getNonNullContext(), LinearLayoutManager.VERTICAL, false));
+                    folderList.setAdapter(new FolderListAdapter(getNonNullContext(), mImageLoader, file, new FolderListAdapter.OnFolderItemClickListener() {
+                        @Override
+                        public void onItemClick(View itemView, String folderName, List<File> files, int position) {
+                            mImageFolder.setText(folderName);
+                            filePickerAdapter.setFileList(files);
+                            filePickerAdapter.notifyDataSetChanged();
+                            popupWindow.dismiss();
+                        }
+                    }));
+
+                    folderList.measure(
+                            View.MeasureSpec.makeMeasureSpec(DisplayUtil.getScreenWidth(getNonNullContext()), View.MeasureSpec.EXACTLY),
+                            View.MeasureSpec.makeMeasureSpec(DisplayUtil.getScreenHeight(getNonNullContext()), View.MeasureSpec.AT_MOST)
+                    );
+
+                    ViewGroup.LayoutParams layoutParams = folderList.getLayoutParams();
+                    int maxHeight = DisplayUtil.getScreenHeight(getNonNullContext()) * 2 / 3;
+                    if (folderList.getMeasuredHeight() > maxHeight) {
+                        layoutParams.height = maxHeight;
+                    }
+
+                    folderList.setLayoutParams(layoutParams);
+
+                    popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+                        @Override
+                        public void onDismiss() {
+                            v.setSelected(false);
+                        }
+                    });
+
+                    popupView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            popupWindow.dismiss();
+                        }
+                    });
+
+
+                    popupWindow.showAtLocation(v, Gravity.NO_GRAVITY, 0, DisplayUtil.getScreenHeight(getNonNullContext()) - popupHeight);
+                }
+            });
         }
+    }
+
+    private Context getNonNullContext() {
+        Context context = this.getContext();
+        if (context == null) {
+            context = this.getActivity();
+        }
+        return context;
     }
 
     private void beforeDestroyCallback() {
@@ -265,4 +357,90 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
         }
     }
 
+    private static class FolderListAdapter extends RecyclerView.Adapter<FolderListAdapter.FolderHolder> {
+
+        private final List<Pair<String, File[]>> mDirFiles;
+        private final IPreviewImageLoader mImageLoader;
+        private final OnFolderItemClickListener onItemClickListener;
+
+        public FolderListAdapter(Context context, IPreviewImageLoader imageLoader, List<File> dir, OnFolderItemClickListener onItemClickListener) {
+            this.mImageLoader = imageLoader;
+            this.onItemClickListener = onItemClickListener;
+            this.mDirFiles = new ArrayList<>();
+            mDirFiles.add(null);
+
+            for (File file : dir) {
+                if (file.isDirectory()) {
+                    File[] files = file.listFiles(new FileFilter() {
+                        @Override
+                        public boolean accept(File pathname) {
+                            return pathname.isFile();
+                        }
+                    });
+                    if (files != null && files.length > 0) {
+                        mDirFiles.add(new Pair<String, File[]>(file.getName(), files));
+                    }
+                }
+            }
+
+            List<File> allImageFile = new ArrayList<File>();
+            for (int i = 1; i < mDirFiles.size(); i++) {
+                Pair<String, File[]> dirFile = mDirFiles.get(i);
+                allImageFile.addAll(Arrays.asList(dirFile.second));
+            }
+            mDirFiles.set(0, new Pair<String, File[]>(context.getResources().getString(R.string.all_image), allImageFile.toArray(new File[]{})));
+        }
+
+        @NonNull
+        @Override
+        public FolderHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+            return new FolderHolder(LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.filepicker_item_image_folder, viewGroup, false));
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull FolderHolder viewHolder, int i) {
+            int position = viewHolder.getAdapterPosition();
+            Pair<String, File[]> files = this.mDirFiles.get(position);
+            mImageLoader.loadPreviewImage(files.second[0], viewHolder.mFolderPreview);
+            viewHolder.mFolderName.setText(files.first);
+            viewHolder.mFolderDescription.setText(String.format(Locale.getDefault(), "共%d张照片", files.second.length));
+            viewHolder.mItemClickListener = onItemClickListener;
+            viewHolder.position = position;
+            viewHolder.fileDir = files.second;
+            viewHolder.itemView.setOnClickListener(viewHolder);
+        }
+
+        @Override
+        public int getItemCount() {
+            return mDirFiles.size();
+        }
+
+        public interface OnFolderItemClickListener {
+            void onItemClick(View itemView, String folderName, List<File> files, int position);
+        }
+
+        private static class FolderHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+            private final ImageView mFolderPreview;
+            private final TextView mFolderName;
+            private final TextView mFolderDescription;
+            private OnFolderItemClickListener mItemClickListener;
+            private File[] fileDir;
+            private int position;
+
+            public FolderHolder(@NonNull View itemView) {
+                super(itemView);
+                mFolderPreview = itemView.findViewById(R.id.folder_preview);
+                mFolderName = itemView.findViewById(R.id.folder_name);
+                mFolderDescription = itemView.findViewById(R.id.folder_description);
+            }
+
+            @Override
+            public void onClick(View v) {
+                if (mItemClickListener != null) {
+                    mItemClickListener.onItemClick(v, mFolderName.getText().toString(), Arrays.asList(fileDir), position);
+                }
+            }
+        }
+    }
 }

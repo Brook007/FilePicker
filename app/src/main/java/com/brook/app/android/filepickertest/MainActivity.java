@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        FilePickerConfig defaultConfig = FilePickerConfig.DEFAULT_CONFIG;
+        FilePickerConfig defaultConfig = FilePickerConfig.getDefaultConfig();
         defaultConfig.setImageLoader(new IPreviewImageLoader() {
             @Override
             public void loadPreviewImage(File sourceFile, ImageView previewImageView) {
@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             FilePickerUtils.getInstance()
                                     .setPickerCount(3)
+                                    .setFilePickerType("image/*")
                                     .launchPicker(MainActivity.this, new FilePickerValueCallback() {
                                         @Override
                                         public void onPickResult(List<File> file) {

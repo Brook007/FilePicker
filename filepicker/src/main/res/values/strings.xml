@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">filepicker</string>
     <string name="camera">拍摄照片</string>
+    <string name="all_image">全部图片</string>
 </resources>
