@@ -5,6 +5,7 @@ Android文件选择器，默认实现了图片选择器，可自行继承并实�
 
 ## 引入依赖
 
+
 1. 根项目的build.gradle中加入以下代码
 
 ```gradle
@@ -20,7 +21,7 @@ allprojects {
 
 ```gradle
 dependencies {
-	implementation 'com.github.Brook007:FilePicker:1.1.0'
+	implementation 'com.github.Brook007:FilePicker:1.1.1'
 }
 ```
 

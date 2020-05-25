@@ -1,6 +1,5 @@
 package com.brook.app.android.filepicker.ui;
 
-import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -42,7 +41,7 @@ class FilePickerAdapter extends RecyclerView.Adapter {
             View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.filepicker_item_thumbnail, viewGroup, false);
             int itemWidth = (int) ((DisplayUtil.getScreenWidth(viewGroup.getContext()) - DisplayUtil.dp2px(viewGroup.getContext(), 1) * 2) / 3);
             view.setLayoutParams(new ViewGroup.LayoutParams(itemWidth, itemWidth));
-            view.setBackgroundColor(Color.rgb(50, 50, 50));
+            view.setBackground(null);
             return new ItemViewHolder(view);
         }
     }

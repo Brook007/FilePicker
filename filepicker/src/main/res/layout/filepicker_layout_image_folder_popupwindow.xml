@@ -10,6 +10,6 @@
         android:id="@+id/folder_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#ffffff" />
+        android:background="@android:color/white" />
 
 </LinearLayout>

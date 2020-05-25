@@ -7,7 +7,7 @@
     <application>
         <activity
             android:name="com.brook.app.android.filepicker.ui.FilePickerActivity"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+            android:theme="@style/FilePickerTheme" />
 
         <provider
             android:name="com.brook.app.android.filepicker.util.CacheProvider"
