@@ -14,19 +14,19 @@ import com.brook.app.android.filepicker.util.DisplayUtil;
  * @author Brook
  * @time 2020/5/25 11:31
  */
-public class MaxHeightLinearLayout extends FrameLayout {
+public class MaxHeightLayout extends FrameLayout {
 
     private int mMaxHeight;
 
-    public MaxHeightLinearLayout(Context context) {
+    public MaxHeightLayout(Context context) {
         this(context, null);
     }
 
-    public MaxHeightLinearLayout(Context context, AttributeSet attrs) {
+    public MaxHeightLayout(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public MaxHeightLinearLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+    public MaxHeightLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
@@ -99,10 +99,10 @@ public class MaxHeightLinearLayout extends FrameLayout {
 
         public LayoutParams(Context context, AttributeSet attrs) {
             super(context, attrs);
-            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.MaxHeightLinearLayout_Layout);
-            maxHeight = typedArray.getLayoutDimension(R.styleable.MaxHeightLinearLayout_Layout_android_maxHeight, LayoutParams.WRAP_CONTENT);
+            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.MaxHeightLayout_Layout);
+            maxHeight = typedArray.getLayoutDimension(R.styleable.MaxHeightLayout_Layout_android_maxHeight, LayoutParams.WRAP_CONTENT);
             if (maxHeight <= 0) {
-                maxHeight = typedArray.getFloat(R.styleable.MaxHeightLinearLayout_Layout_maxHeightScreenPercent, 0);
+                maxHeight = typedArray.getFloat(R.styleable.MaxHeightLayout_Layout_maxHeightPercent, 0);
             }
             typedArray.recycle();
         }

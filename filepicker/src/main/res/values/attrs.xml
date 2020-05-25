@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <declare-styleable name="MaxHeightLinearLayout_Layout">
+    <declare-styleable name="MaxHeightLayout_Layout">
         <attr name="android:maxHeight" />
         <!-- 0.0-1.0-->
-        <attr name="maxHeightScreenPercent" format="float" />
+        <attr name="maxHeightPercent" format="float" />
     </declare-styleable>
 
 </resources>
