@@ -69,9 +69,9 @@ public class FolderListAdapter extends RecyclerView.Adapter<FolderListAdapter.Fo
     public void onBindViewHolder(@NonNull FolderHolder viewHolder, int i) {
         int position = viewHolder.getAdapterPosition();
         Pair<String, File[]> files = this.mDirFiles.get(position);
-        mImageLoader.loadPreviewImage(files.second[0], viewHolder.mFolderPreview);
+        mImageLoader.loadPreviewImage(files.second == null || files.second.length == 0 ? null : files.second[0], viewHolder.mFolderPreview);
         viewHolder.mFolderName.setText(files.first);
-        viewHolder.mFolderDescription.setText(String.format(Locale.getDefault(), "共%d张照片", files.second.length));
+        viewHolder.mFolderDescription.setText(String.format(Locale.getDefault(), "共%d张照片", files.second == null ? 0 : files.second.length));
         viewHolder.mItemClickListener = onItemClickListener;
         viewHolder.position = position;
         viewHolder.fileDir = files.second;

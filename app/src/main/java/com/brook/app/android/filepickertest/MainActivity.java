@@ -34,7 +34,9 @@ public class MainActivity extends AppCompatActivity {
                 // 如果需要加载其他的类型的图片，预览图策略需要更改，以便显示预览图或者图标
                 Glide.with(previewImageView.getContext())
                         .load(sourceFile)
-                        .apply(new RequestOptions().centerCrop())
+                        .apply(new RequestOptions()
+                                .centerCrop()
+                                .placeholder(R.drawable.ic_empty))
                         .into(previewImageView);
             }
         });
