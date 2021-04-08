@@ -87,7 +87,7 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
             activity.getLifecycle().addObserver(new LifecycleObserver() {
                 @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
                 public void onDestroy() {
-                    beforeDestroyCallback();
+                    performCallback();
                 }
             });
         }
@@ -96,7 +96,7 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
     @Override
     public void onDestroy() {
         super.onDestroy();
-        beforeDestroyCallback();
+        performCallback();
     }
 
     @Override
@@ -169,7 +169,7 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
     @Override
     public void onClick(final View v) {
         if (R.id.back == v.getId() || R.id.finish == v.getId()) {
-            beforeDestroyCallback();
+            performCallback();
             finishParentActivity();
         } else if (v.getId() == R.id.image_folder) {
             // 显示PopupWindow
@@ -236,7 +236,7 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
         return context;
     }
 
-    private void beforeDestroyCallback() {
+    private void performCallback() {
         if (mConfigCallback != null) {
             mConfigCallback.onPickResult(mCurrentPickerFileList);
             mConfigCallback = null;
@@ -287,7 +287,7 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
                                                 public void onActivityResult(int requestCode, int resultCode, Intent data) {
                                                     if (cameraSavePath.exists()) {
                                                         mCurrentPickerFileList.add(cameraSavePath);
-                                                        mConfigCallback.onPickResult(mCurrentPickerFileList);
+                                                        performCallback();
                                                         finishParentActivity();
                                                     }
                                                 }
@@ -320,7 +320,7 @@ public class FilePickerFragment extends Fragment implements View.OnClickListener
 
             if (mPickerCount == mCurrentPickerFileList.size()) {
                 if (mPickerCount == 1) {
-                    mConfigCallback.onPickResult(mCurrentPickerFileList);
+                    performCallback();
                     finishParentActivity();
                 } else {
                     tvFinish.setEnabled(true);
